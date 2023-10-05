@@ -17,6 +17,7 @@ github_session = requests.Session()
 github_session.auth = (config.gh_user, config.gh_token)
 
 # Get the branches
+"""
 def branches_of_repo(repo, owner, api):
     branches = []
     next = True
@@ -35,7 +36,7 @@ def branches_of_repo(repo, owner, api):
 
 branches = json_normalize(branches_of_repo('DeepSpeed', 'microsoft', github_api))
 branches.to_csv('data/branches.csv')
-
+"""
 # Get the commits
 def commits_of_repo(repo, owner, api):
     commits = []
@@ -43,10 +44,28 @@ def commits_of_repo(repo, owner, api):
     i = 0
     while next == True:
         url = api + '/repos/{}/{}/commits?page={}&per_page=100'.format(owner, repo, i)
-        commit_pg =  github_session.get(url = url)
-        commit_pg_list = [dict(item, **{'repo_name':'{}'.format(repo)}) for item in commit_pg.json()]    
-        commit_pg_list = [dict(item, **{'owner':'{}'.format(owner)}) for item in commit_pg_list]
-        commits = commits + commit_pg_list
+        commit_pg = github_session.get(url=url)
+        commit_pg_list = commit_pg.json()
+
+        # Procesar y guardar la información de los commits
+        for commit_data in commit_pg_list:
+            sha = commit_data["sha"]
+            author_name = commit_data["commit"]["author"]["name"]
+            creation_date = commit_data["commit"]["author"]["date"]
+            # Verificar si "author" es None y si contiene "id"
+            if commit_data.get("author") is not None and "id" in commit_data["author"]:
+                author_id = commit_data["author"]["id"]
+            else:
+                author_id = "ID Desconocido"
+
+            # Agregar la información a la lista
+            commits.append({
+                "SHA del commit": sha,
+                "Nombre del autor": author_name,
+                "Fecha de creación": creation_date,
+                "ID del author": author_id
+            })
+
         if 'Link' in commit_pg.headers:
             if 'rel="next"' not in commit_pg.headers['Link']:
                 next = False
@@ -57,10 +76,6 @@ def commits_of_repo(repo, owner, api):
 commits = json_normalize(commits_of_repo('DeepSpeed', 'microsoft', github_api))
 commits.to_csv('data/commits.csv')
 
-commits2 = json_normalize(commits_of_repo('DeepSpeed', 'microsoft', github_api))
-# To DF
-commits_df = pd.DataFrame(commits2)
-commits_df.describe()
 
 # Get the issues
 #issues_url = f"{repo_url}/issues"
