@@ -16,32 +16,11 @@ github_repo = ""
 github_session = requests.Session()
 github_session.auth = (config.gh_user, config.gh_token)
 
-# Get the branches
-"""
-def branches_of_repo(repo, owner, api):
-    branches = []
-    next = True
-    i = 0
-    while next == True:
-        url = api + '/repos/{}/{}/branches?page={}&per_page=100'.format(owner, repo, i)
-        branch_pg =  github_session.get(url = url)
-        branch_pg_list = [dict(item, **{'repo_name':'{}'.format(repo)}) for item in branch_pg.json()]    
-        branch_pg_list = [dict(item, **{'owner':'{}'.format(owner)}) for item in branch_pg_list]
-        branches = branches + branch_pg_list
-        if 'Link' in branch_pg.headers:
-            if 'rel="next"' not in branch_pg.headers['Link']:
-                next = False
-        i = i + 1
-    return branches
-
-branches = json_normalize(branches_of_repo('DeepSpeed', 'microsoft', github_api))
-branches.to_csv('data/branches.csv')
-"""
 # Get the commits
 def commits_of_repo(repo, owner, api):
     commits = []
     next = True
-    i = 0
+    i = 1
     while next == True:
         url = api + '/repos/{}/{}/commits?page={}&per_page=100'.format(owner, repo, i)
         commit_pg = github_session.get(url=url)
@@ -76,6 +55,103 @@ def commits_of_repo(repo, owner, api):
 commits = json_normalize(commits_of_repo('DeepSpeed', 'microsoft', github_api))
 commits.to_csv('data/commits.csv')
 
+# Get the closed pulls
+def closed_pulls_of_repo(repo, owner, api):
+    closed_pulls = []
+    next = True
+    i = 1
+    while next == True:
+        url = api + '/repos/{}/{}/pulls?state=closed&page={}&per_page=100'.format(owner, repo, i)
+        pull_pg = github_session.get(url=url)
+        pull_pg_list = pull_pg.json()
+
+        # Procesar y guardar la información de los pulls
+        for closed_pull_data in pull_pg_list:
+            id_pull = closed_pull_data["id"]
+            name = closed_pull_data["title"]
+            id_user = closed_pull_data["user"]["id"]
+            status = closed_pull_data["state"]
+            created_at = closed_pull_data["created_at"]
+            closed_at = closed_pull_data["closed_at"]
+            id_commit = closed_pull_data["merge_commit_sha"]
+            if 'head' in closed_pull_data:
+                head_data = closed_pull_data['head']
+                if 'repo' in head_data:
+                    repo_data = head_data['repo']
+                    if 'id' in repo_data:
+                        id_repository = repo_data['id']
+                    else:
+                        print("No hay ID de repositorio")
+                else:
+                    print("No hay datos de repo en el encabezado (head)")
+            else:
+                print("No hay datos de encabezado (head)")
+            
+
+            # Agregar la información a la lista
+            closed_pulls.append({
+                "ID pull": id_pull,
+                "Name": name,
+                "ID Usuario": id_user,
+                "Estado": status,
+                "Fecha de creación": created_at,
+                "Fecha de cierre": closed_at,
+                "ID commit": id_commit,
+                "ID repositorio": id_repository
+            })
+
+        if 'Link' in pull_pg.headers:
+            if 'rel="next"' not in pull_pg.headers['Link']:
+                next = False
+        i = i + 1
+    return closed_pulls
+
+# Get the open pulls
+def open_pulls_of_repo(repo, owner, api):
+    open_pulls = []
+    next = True
+    i = 1
+    while next == True:
+        url = api + '/repos/{}/{}/pulls?state=open&page={}&per_page=100'.format(owner, repo, i)
+        pull_pg = github_session.get(url=url)
+        pull_pg_list = pull_pg.json()
+
+        # Procesar y guardar la información de los pulls
+        for pull_data in pull_pg_list:
+            id_pull = pull_data["id"]
+            name = pull_data["title"]
+            id_user = pull_data["user"]["id"]
+            status = pull_data["state"]
+            created_at = pull_data["created_at"]
+            closed_at = pull_data["closed_at"]
+            id_commit = pull_data["merge_commit_sha"]
+            if 'head' in pull_data and 'repo' in pull_data['head'] and 'id' in pull_data['head']['repo']:
+                id_repository = pull_data['head']['repo']['id']
+            else:
+                print("No hay ID de repositorio")
+            
+
+            # Agregar la información a la lista
+            open_pulls.append({
+                "ID pull": id_pull,
+                "Name": name,
+                "ID Usuario": id_user,
+                "Estado": status,
+                "Fecha de creación": created_at,
+                "Fecha de cierre": closed_at,
+                "ID commit": id_commit,
+                "ID repositorio": id_repository
+            })
+
+        if 'Link' in pull_pg.headers:
+            if 'rel="next"' not in pull_pg.headers['Link']:
+                next = False
+        i = i + 1
+    return open_pulls
+
+# Combine open_pulls and closed_pulls
+pulls = json_normalize(closed_pulls_of_repo('DeepSpeed', 'microsoft', github_api) + open_pulls_of_repo('DeepSpeed', 'microsoft', github_api))
+pulls.to_csv('data/pulls.csv')
 
 # Get the issues
 #issues_url = f"{repo_url}/issues"
