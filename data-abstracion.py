@@ -23,9 +23,16 @@ def repo_info(repo, owner, api):
     repo_info_list = repo_info.json()
     # Get id of the repository
     id_repo = repo_info_list['id']
-    return id_repo
+    name_repo = repo_info_list['name']
+    url_repo = repo_info_list['html_url']
+
+    #General information of the repository
+    generalInfo = [id_repo, name_repo, url_repo ]
+    return generalInfo
+
 # Id of the repository
-id_general_repo = repo_info('DeepSpeed', 'microsoft', github_api)
+id_general_repo = repo_info('DeepSpeed', 'microsoft', github_api)[0]
+
 
 # Get the commits
 def commits_of_repo(repo, owner, api):
