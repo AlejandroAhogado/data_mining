@@ -16,6 +16,17 @@ github_repo = ""
 github_session = requests.Session()
 github_session.auth = (config.gh_user, config.gh_token)
 
+# Get repository information
+def repo_info(repo, owner, api):
+    url = api + '/repos/{}/{}'.format(owner, repo)
+    repo_info = github_session.get(url=url)
+    repo_info_list = repo_info.json()
+    # Get id of the repository
+    id_repo = repo_info_list['id']
+    return id_repo
+# Id of the repository
+id_general_repo = repo_info('DeepSpeed', 'microsoft', github_api)
+
 # Get the commits
 def commits_of_repo(repo, owner, api):
     commits = []
@@ -36,13 +47,15 @@ def commits_of_repo(repo, owner, api):
                 author_id = commit_data["author"]["id"]
             else:
                 author_id = "ID Desconocido"
+            id_repository = id_general_repo
 
             # Agregar la información a la lista
             commits.append({
                 "SHA del commit": sha,
                 "Nombre del autor": author_name,
                 "Fecha de creación": creation_date,
-                "ID del author": author_id
+                "ID del author": author_id,
+                "ID repositorio": id_repository
             })
 
         if 'Link' in commit_pg.headers:
@@ -50,7 +63,6 @@ def commits_of_repo(repo, owner, api):
                 next = False
         i = i + 1
     return commits
-
 
 commits = json_normalize(commits_of_repo('DeepSpeed', 'microsoft', github_api))
 commits.to_csv('data/commits.csv')
@@ -74,11 +86,7 @@ def closed_pulls_of_repo(repo, owner, api):
             created_at = closed_pull_data["created_at"]
             closed_at = closed_pull_data["closed_at"]
             id_commit = closed_pull_data["merge_commit_sha"]
-            if 'base' in closed_pull_data and 'repo' in closed_pull_data['base'] and 'id' in closed_pull_data['base']['repo']:
-                id_repository = closed_pull_data['base']['repo']['id']
-            else:
-                print("No hay ID de repositorio")
-
+            id_repository = id_general_repo
             
 
             # Agregar la información a la lista
@@ -118,10 +126,8 @@ def open_pulls_of_repo(repo, owner, api):
             created_at = pull_data["created_at"]
             closed_at = pull_data["closed_at"]
             id_commit = pull_data["merge_commit_sha"]
-            if 'base' in pull_data and 'repo' in pull_data['base'] and 'id' in pull_data['base']['repo']:
-                id_repository = pull_data['base']['repo']['id']
-            else:
-                print("No hay ID de repositorio")
+            id_repository = id_general_repo
+          
             
 
             # Agregar la información a la lista
