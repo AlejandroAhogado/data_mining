@@ -16,6 +16,10 @@ github_repo = ""
 github_session = requests.Session()
 github_session.auth = (config.gh_user, config.gh_token)
 
+# Start Timestamp
+start_time = datetime.now()
+
+
 # Get repository information
 def repo_info(repo, owner, api):
     url = api + '/repos/{}/{}'.format(owner, repo)
@@ -134,7 +138,6 @@ def open_pulls_of_repo(repo, owner, api):
             closed_at = pull_data["closed_at"]
             id_commit = pull_data["merge_commit_sha"]
             id_repository = id_general_repo
-          
             
 
             # Agregar la información a la lista
@@ -158,6 +161,13 @@ def open_pulls_of_repo(repo, owner, api):
 # Combine open_pulls and closed_pulls
 pulls = json_normalize( closed_pulls_of_repo('DeepSpeed', 'microsoft', github_api) + open_pulls_of_repo('DeepSpeed', 'microsoft', github_api))
 pulls.to_csv('data/pulls.csv')
+
+#Finish timestamp
+finish_time = datetime.now()
+
+# Time elapsed
+time_elapsed = finish_time - start_time
+print('Time elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
 
 # Get the issues
 #issues_url = f"{repo_url}/issues"
