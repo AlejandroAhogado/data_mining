@@ -1,6 +1,6 @@
 import json
 import requests
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine, engine, text, types, MetaData, Table, String
@@ -74,18 +74,11 @@ def closed_pulls_of_repo(repo, owner, api):
             created_at = closed_pull_data["created_at"]
             closed_at = closed_pull_data["closed_at"]
             id_commit = closed_pull_data["merge_commit_sha"]
-            if 'head' in closed_pull_data:
-                head_data = closed_pull_data['head']
-                if 'repo' in head_data:
-                    repo_data = head_data['repo']
-                    if 'id' in repo_data:
-                        id_repository = repo_data['id']
-                    else:
-                        print("No hay ID de repositorio")
-                else:
-                    print("No hay datos de repo en el encabezado (head)")
+            if 'base' in closed_pull_data and 'repo' in closed_pull_data['base'] and 'id' in closed_pull_data['base']['repo']:
+                id_repository = closed_pull_data['base']['repo']['id']
             else:
-                print("No hay datos de encabezado (head)")
+                print("No hay ID de repositorio")
+
             
 
             # Agregar la información a la lista
@@ -125,8 +118,8 @@ def open_pulls_of_repo(repo, owner, api):
             created_at = pull_data["created_at"]
             closed_at = pull_data["closed_at"]
             id_commit = pull_data["merge_commit_sha"]
-            if 'head' in pull_data and 'repo' in pull_data['head'] and 'id' in pull_data['head']['repo']:
-                id_repository = pull_data['head']['repo']['id']
+            if 'base' in pull_data and 'repo' in pull_data['base'] and 'id' in pull_data['base']['repo']:
+                id_repository = pull_data['base']['repo']['id']
             else:
                 print("No hay ID de repositorio")
             
@@ -150,7 +143,7 @@ def open_pulls_of_repo(repo, owner, api):
     return open_pulls
 
 # Combine open_pulls and closed_pulls
-pulls = json_normalize(closed_pulls_of_repo('DeepSpeed', 'microsoft', github_api) + open_pulls_of_repo('DeepSpeed', 'microsoft', github_api))
+pulls = json_normalize( closed_pulls_of_repo('DeepSpeed', 'microsoft', github_api) + open_pulls_of_repo('DeepSpeed', 'microsoft', github_api))
 pulls.to_csv('data/pulls.csv')
 
 # Get the issues
