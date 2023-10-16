@@ -33,134 +33,136 @@ def repo_info(repo, owner, api):
     #General information of the repository
     generalInfo = [id_repo, name_repo, url_repo ]
     return generalInfo
+repos = json_normalize(repo_info('DeepSpeed', 'microsoft', github_api))
+repos.to_csv('data/repos.csv', sep=';')
 
 # Id of the repository
 id_general_repo = repo_info('DeepSpeed', 'microsoft', github_api)[0]
 
 
-# # Get the commits
-# def commits_of_repo(repo, owner, api):
-#     commits = []
-#     next = True
-#     i = 1
-#     while next == True:
-#         url = api + '/repos/{}/{}/commits?page={}&per_page=100'.format(owner, repo, i)
-#         commit_pg = github_session.get(url=url)
-#         commit_pg_list = commit_pg.json()
+# Get the commits
+def commits_of_repo(repo, owner, api):
+    commits = []
+    next = True
+    i = 1
+    while next == True:
+        url = api + '/repos/{}/{}/commits?page={}&per_page=100'.format(owner, repo, i)
+        commit_pg = github_session.get(url=url)
+        commit_pg_list = commit_pg.json()
 
-#         # Procesar y guardar la información de los commits
-#         for commit_data in commit_pg_list:
-#             sha = commit_data["sha"]
-#             author_name = commit_data["commit"]["author"]["name"]
-#             creation_date = commit_data["commit"]["author"]["date"]
-#             # Verificar si "author" es None y si contiene "id"
-#             if commit_data.get("author") is not None and "id" in commit_data["author"]:
-#                 author_id = commit_data["author"]["id"]
-#             else:
-#                 author_id = "ID Desconocido"
-#             id_repository = id_general_repo
+        # Procesar y guardar la información de los commits
+        for commit_data in commit_pg_list:
+            sha = commit_data["sha"]
+            author_name = commit_data["commit"]["author"]["name"]
+            creation_date = commit_data["commit"]["author"]["date"]
+            # Verificar si "author" es None y si contiene "id"
+            if commit_data.get("author") is not None and "id" in commit_data["author"]:
+                author_id = commit_data["author"]["id"]
+            else:
+                author_id = "ID Desconocido"
+            id_repository = id_general_repo
 
-#             # Agregar la información a la lista
-#             commits.append({
-#                 "SHA del commit": sha,
-#                 "Nombre del autor": author_name,
-#                 "Fecha de creación": creation_date,
-#                 "ID del author": author_id,
-#                 "ID repositorio": id_repository
-#             })
+            # Agregar la información a la lista
+            commits.append({
+                "SHA del commit": sha,
+                "Nombre del autor": author_name,
+                "Fecha de creación": creation_date,
+                "ID del author": author_id,
+                "ID repositorio": id_repository
+            })
 
-#         if 'Link' in commit_pg.headers:
-#             if 'rel="next"' not in commit_pg.headers['Link']:
-#                 next = False
-#         i = i + 1
-#     return commits
+        if 'Link' in commit_pg.headers:
+            if 'rel="next"' not in commit_pg.headers['Link']:
+                next = False
+        i = i + 1
+    return commits
 
-# commits = json_normalize(commits_of_repo('DeepSpeed', 'microsoft', github_api))
-# commits.to_csv('data/commits.csv')
+commits = json_normalize(commits_of_repo('DeepSpeed', 'microsoft', github_api))
+commits.to_csv('data/commits.csv', sep=';')
 
-# # Get the closed pulls
-# def closed_pulls_of_repo(repo, owner, api):
-#     closed_pulls = []
-#     next = True
-#     i = 1
-#     while next == True:
-#         url = api + '/repos/{}/{}/pulls?state=closed&page={}&per_page=100'.format(owner, repo, i)
-#         pull_pg = github_session.get(url=url)
-#         pull_pg_list = pull_pg.json()
+# Get the closed pulls
+def closed_pulls_of_repo(repo, owner, api):
+    closed_pulls = []
+    next = True
+    i = 1
+    while next == True:
+        url = api + '/repos/{}/{}/pulls?state=closed&page={}&per_page=100'.format(owner, repo, i)
+        pull_pg = github_session.get(url=url)
+        pull_pg_list = pull_pg.json()
 
-#         # Procesar y guardar la información de los pulls
-#         for closed_pull_data in pull_pg_list:
-#             id_pull = closed_pull_data["id"]
-#             name = closed_pull_data["title"]
-#             id_user = closed_pull_data["user"]["id"]
-#             status = closed_pull_data["state"]
-#             created_at = closed_pull_data["created_at"]
-#             closed_at = closed_pull_data["closed_at"]
-#             id_commit = closed_pull_data["merge_commit_sha"]
-#             id_repository = id_general_repo
+        # Procesar y guardar la información de los pulls
+        for closed_pull_data in pull_pg_list:
+            id_pull = closed_pull_data["id"]
+            name = closed_pull_data["title"]
+            id_user = closed_pull_data["user"]["id"]
+            status = closed_pull_data["state"]
+            created_at = closed_pull_data["created_at"]
+            closed_at = closed_pull_data["closed_at"]
+            id_commit = closed_pull_data["merge_commit_sha"]
+            id_repository = id_general_repo
             
 
-#             # Agregar la información a la lista
-#             closed_pulls.append({
-#                 "ID pull": id_pull,
-#                 "Name": name,
-#                 "ID Usuario": id_user,
-#                 "Estado": status,
-#                 "Fecha de creación": created_at,
-#                 "Fecha de cierre": closed_at,
-#                 "ID commit": id_commit,
-#                 "ID repositorio": id_repository
-#             })
+            # Agregar la información a la lista
+            closed_pulls.append({
+                "ID pull": id_pull,
+                "Name": name,
+                "ID Usuario": id_user,
+                "Estado": status,
+                "Fecha de creación": created_at,
+                "Fecha de cierre": closed_at,
+                "ID commit": id_commit,
+                "ID repositorio": id_repository
+            })
 
-#         if 'Link' in pull_pg.headers:
-#             if 'rel="next"' not in pull_pg.headers['Link']:
-#                 next = False
-#         i = i + 1
-#     return closed_pulls
+        if 'Link' in pull_pg.headers:
+            if 'rel="next"' not in pull_pg.headers['Link']:
+                next = False
+        i = i + 1
+    return closed_pulls
 
-# # Get the open pulls
-# def open_pulls_of_repo(repo, owner, api):
-#     open_pulls = []
-#     next = True
-#     i = 1
-#     while next == True:
-#         url = api + '/repos/{}/{}/pulls?state=open&page={}&per_page=100'.format(owner, repo, i)
-#         pull_pg = github_session.get(url=url)
-#         pull_pg_list = pull_pg.json()
+# Get the open pulls
+def open_pulls_of_repo(repo, owner, api):
+    open_pulls = []
+    next = True
+    i = 1
+    while next == True:
+        url = api + '/repos/{}/{}/pulls?state=open&page={}&per_page=100'.format(owner, repo, i)
+        pull_pg = github_session.get(url=url)
+        pull_pg_list = pull_pg.json()
 
-#         # Procesar y guardar la información de los pulls
-#         for pull_data in pull_pg_list:
-#             id_pull = pull_data["id"]
-#             name = pull_data["title"]
-#             id_user = pull_data["user"]["id"]
-#             status = pull_data["state"]
-#             created_at = pull_data["created_at"]
-#             closed_at = pull_data["closed_at"]
-#             id_commit = pull_data["merge_commit_sha"]
-#             id_repository = id_general_repo
+        # Procesar y guardar la información de los pulls
+        for pull_data in pull_pg_list:
+            id_pull = pull_data["id"]
+            name = pull_data["title"]
+            id_user = pull_data["user"]["id"]
+            status = pull_data["state"]
+            created_at = pull_data["created_at"]
+            closed_at = pull_data["closed_at"]
+            id_commit = pull_data["merge_commit_sha"]
+            id_repository = id_general_repo
             
 
-#             # Agregar la información a la lista
-#             open_pulls.append({
-#                 "ID pull": id_pull,
-#                 "Name": name,
-#                 "ID Usuario": id_user,
-#                 "Estado": status,
-#                 "Fecha de creación": created_at,
-#                 "Fecha de cierre": closed_at,
-#                 "ID commit": id_commit,
-#                 "ID repositorio": id_repository
-#             })
+            # Agregar la información a la lista
+            open_pulls.append({
+                "ID pull": id_pull,
+                "Name": name,
+                "ID Usuario": id_user,
+                "Estado": status,
+                "Fecha de creación": created_at,
+                "Fecha de cierre": closed_at,
+                "ID commit": id_commit,
+                "ID repositorio": id_repository
+            })
 
-#         if 'Link' in pull_pg.headers:
-#             if 'rel="next"' not in pull_pg.headers['Link']:
-#                 next = False
-#         i = i + 1
-#     return open_pulls
+        if 'Link' in pull_pg.headers:
+            if 'rel="next"' not in pull_pg.headers['Link']:
+                next = False
+        i = i + 1
+    return open_pulls
 
-# # Combine open_pulls and closed_pulls
-# pulls = json_normalize( closed_pulls_of_repo('DeepSpeed', 'microsoft', github_api) + open_pulls_of_repo('DeepSpeed', 'microsoft', github_api))
-# pulls.to_csv('data/pulls.csv')
+# Combine open_pulls and closed_pulls
+pulls = json_normalize( closed_pulls_of_repo('DeepSpeed', 'microsoft', github_api) + open_pulls_of_repo('DeepSpeed', 'microsoft', github_api))
+pulls.to_csv('data/pulls.csv', sep=';')
 
 
 # Get the open_issues
@@ -253,7 +255,7 @@ def closed_issues_of_repo(repo, owner, api):
 
 #Get the issues
 issues = json_normalize( open_issues_of_repo('DeepSpeed', 'microsoft', github_api) + closed_issues_of_repo('DeepSpeed', 'microsoft', github_api))
-issues.to_csv('data/issues.csv')
+issues.to_csv('data/issues.csv', sep=';')
 
 
 #Finish timestamp
@@ -262,23 +264,6 @@ finish_time = datetime.now()
 # Time elapsed
 time_elapsed = finish_time - start_time
 print('Time elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
-
-# Get the issues
-#issues_url = f"{repo_url}/issues"
-#issues = github_session.get(issues_url).json()
-
-# Get the pull requests
-#pulls_url = f"{repo_url}/pulls"
-#pulls = github_session.get(pulls_url).json()
-
-# Get the commits
-#commits_url = f"{repo_url}/commits"
-#commits = github_session.get(commits_url).json()
-
-# Get the contributors
-#contributors_url = f"{repo_url}/contributors"
-#contributors = github_session.get(contributors_url).json()
-# convert json to CSV
 
 
 
