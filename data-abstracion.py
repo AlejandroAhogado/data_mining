@@ -33,6 +33,8 @@ def repo_info(repo, owner, api):
     #General information of the repository
     generalInfo = [id_repo, name_repo, url_repo ]
     return generalInfo
+repos = json_normalize(repo_info('DeepSpeed', 'microsoft', github_api))
+repos.to_csv('data/repos.csv', sep=';')
 
 # Id of the repository
 id_general_repo = repo_info('DeepSpeed', 'microsoft', github_api)[1]
@@ -263,7 +265,7 @@ def closed_issues_of_repo(repo, owner, api):
 
 #Get the issues
 issues = json_normalize( open_issues_of_repo('DeepSpeed', 'microsoft', github_api) + closed_issues_of_repo('DeepSpeed', 'microsoft', github_api))
-issues.to_csv('data/issues.csv')
+issues.to_csv('data/issues.csv', sep=';')
 
 
 #Finish timestamp
@@ -272,23 +274,6 @@ finish_time = datetime.now()
 # Time elapsed
 time_elapsed = finish_time - start_time
 print('Time elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
-
-# Get the issues
-#issues_url = f"{repo_url}/issues"
-#issues = github_session.get(issues_url).json()
-
-# Get the pull requests
-#pulls_url = f"{repo_url}/pulls"
-#pulls = github_session.get(pulls_url).json()
-
-# Get the commits
-#commits_url = f"{repo_url}/commits"
-#commits = github_session.get(commits_url).json()
-
-# Get the contributors
-#contributors_url = f"{repo_url}/contributors"
-#contributors = github_session.get(contributors_url).json()
-# convert json to CSV
 
 
 
